@@ -1,0 +1,11 @@
+<addon id="plugin.video.traktliked"
+       name="Trakt Liked Movies"
+       version="1.0.0"
+       provider-name="Vasilis">
+    <extension point="xbmc.python.pluginsource" library="addon.py" />
+    <extension point="xbmc.addon.metadata">
+        <summary>Your Trakt liked movies</summary>
+        <description>Shows your Trakt liked movies inside Kodi.</description>
+        <platform>all</platform>
+    </extension>
+</addon>
