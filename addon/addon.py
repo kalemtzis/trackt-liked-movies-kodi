@@ -52,11 +52,24 @@ def get_liked_lists(tokens):
     "trakt-api-key": CLIENT_ID
   }
   
-  res = requests.get(f"{TRAKT_API_ENDPOINT}/users/likes/lists", headers=headers)
-  res.raise_for_status()
+  page = 1
+  all_lists = []
   
+  while True:
+    res = requests.get(f"{TRAKT_API_ENDPOINT}/users/likes/lists", headers=headers)
+    res.raise_for_status()
   
-  return res.json()
+    data = res.json()
+    if not data:
+      break
+    
+    all_lists.extend(data)
+    if len(data) < 100:
+      break
+    page += 1
+  
+  return all_lists
+
 
 def get_list_movies(tokens, username, list_id):
   headers = {
@@ -67,22 +80,18 @@ def get_list_movies(tokens, username, list_id):
   res = requests.get(f"{TRAKT_API_ENDPOINT}/users/{username}/lists/{list_id}/items", headers=headers)
   res.raise_for_status()
   
-  data = res.json()
-  
-  movies = [item['movie'] for item in data if item['type'] == 'movie']
-  
-  return movies
+  return res.json()
   
 if __name__ == '__main__':
   tokens = autheticate()
   username = get_username(tokens)
-  print("Username: ", username)
   liked_lists = get_liked_lists(tokens)
   
-  for lst in liked_lists:
-    print(lst['list']['name'])  
+  os.makedirs(os.path.join(os.getcwd(), 'lists'), exist_ok=True)
   
-  #all_movies = []
+  for lst in liked_lists:
+    print(json.dumps(lst, indent=2))  
+  
   for lst in liked_lists:
     list_id = lst['list']["ids"]["slug"]
     creatorUsername = lst['list']['user']['username']
@@ -90,12 +99,9 @@ if __name__ == '__main__':
     
     movies = get_list_movies(tokens, creatorUsername, list_id)
     
-    os.makedirs(f"{list_name}", exist_ok=True)
-    list_dir = os.path.join(os.getcwd(), list_name)
+    list_dir = os.path.join(os.getcwd(), 'lists', list_name)
     
-    with open(os.path.join(list_dir, f"{list_name}.json"), 'w', encoding='utf-8') as f:
+    os.makedirs(os.path.join(os.getcwd(), list_dir), exist_ok=True)
+    
+    with open(os.path.join(list_dir, f"{list_id}.json"), 'w', encoding='utf-8') as f:
       json.dump(movies, f, indent=2)
-    #all_movies.extend(movies)
-
-  #with open('list.json', 'w') as f:
-    # json.dump(all_movies, f, indent=2)
